@@ -1,155 +1,42 @@
-﻿@model IEnumerable<Store.Models.Product>
-@using Store.Models
-
-@{
-    ViewData["Title"] = "Главная — Магазин";
-
-    var categories = ViewData["Categories"] as List<Category> ?? new List<Category>();
-    var search = ViewData["SearchQuery"] as string;
-
-    var selectedCat = ViewData["CategoryId"] != null
-        ? (int?)Convert.ToInt32(ViewData["CategoryId"])
-        : null;
-
-    var minPrice = ViewData["MinPrice"]?.ToString();
-    var maxPrice = ViewData["MaxPrice"]?.ToString();
-
-    bool hasFilter = !string.IsNullOrWhiteSpace(search)
-                     || selectedCat.HasValue
-                     || !string.IsNullOrWhiteSpace(minPrice)
-                     || !string.IsNullOrWhiteSpace(maxPrice);
-
-    var products = Model?.ToList() ?? new List<Product>();
+﻿@{
+    ViewData["Title"] = "Главная";
 }
 
-<div class="container mt-4">
+<div class="text-center mt-5">
 
-    <!-- 🔍 ФИЛЬТР -->
-    <div class="row mb-3">
-        <div class="col-md-8">
-            <form asp-action="Index" method="get">
-                <div class="d-flex flex-wrap gap-2">
+    <h1 class="display-4">
+        Стоматологическая клиника DentalClinic
+    </h1>
 
-                    <input name="search" value="@search" class="form-control" style="max-width:200px;" placeholder="Поиск..." />
+    <p class="lead mt-4">
+        Современные стоматологические услуги для взрослых и детей
+    </p>
 
-                    <select name="categoryId" class="form-select" style="max-width:200px;">
-                        <option value="">Все категории</option>
-                        @foreach (var cat in categories)
-                        {
-                            if (selectedCat == cat.Id)
-                            {
-                                <option value="@cat.Id" selected>@cat.Name</option>
-                            }
-                            else
-                            {
-                                <option value="@cat.Id">@cat.Name</option>
-                            }
-                        }
-                    </select>
+    <img src="~/images/clinic.jpg"
+         class="img-fluid rounded shadow mt-4"
+         style="max-height:450px;" />
 
-                    <input name="minPrice" type="number" step="0.01"
-                           value="@minPrice"
-                           class="form-control"
-                           style="max-width:120px;"
-                           placeholder="От" />
+    <div class="mt-5">
 
-                    <input name="maxPrice" type="number" step="0.01"
-                           value="@maxPrice"
-                           class="form-control"
-                           style="max-width:120px;"
-                           placeholder="До" />
+        <a asp-controller="Products"
+               asp-action="Index"
+               class="btn btn-primary btn-lg">
 
-                    <button class="btn btn-primary" type="submit">Применить</button>
+            Перейти к услугам
 
-                </div>
-            </form>
-        </div>
+        </a>
 
-        <div class="col-md-4 text-end">
+        @if (User.Identity.IsAuthenticated)
+        {
+            <a asp-controller="Orders"
+                   asp-action="Index"
+                   class="btn btn-success btn-lg ms-3">
 
-            @if (User.IsInRole("Admin"))
-            {
-                <a asp-controller="Admin" asp-action="CreateUser" class="btn btn-success me-2">
-                    Добавить пользователя
-                </a>
+                Мои записи
 
-                <a asp-controller="Admin" asp-action="ChangeRole" class="btn btn-warning me-2">
-                    Изменить роль
-                </a>
-            }
+            </a>
+        }
 
-            <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-secondary">Корзина</a>
-            <a asp-controller="Users" asp-action="Login" class="btn btn-outline-primary ms-2">Войти</a>
-
-        </div>
-    </div>
-
-    <h3>Популярные товары</h3>
-
-    @if (hasFilter)
-    {
-        <div class="row">
-            @if (!products.Any())
-            {
-                <div class="col-12">
-                    <p class="text-muted">Товары не найдены.</p>
-                </div>
-            }
-            else
-            {
-                @foreach (var p in products)
-                {
-                    <div class="col-sm-6 col-md-4 mb-4">
-                        @await Html.PartialAsync("~/Views/Shared/ProductCard.cshtml", p)
-                    </div>
-                }
-            }
-        </div>
-    }
-    else
-    {
-        <div class="row">
-            @{
-                var featured = products.Take(3).ToList();
-            }
-
-            @if (!featured.Any())
-            {
-                <div class="col-12">
-                    <p class="text-muted">Товары отсутствуют.</p>
-                </div>
-            }
-            else
-            {
-                @foreach (var p in featured)
-                {
-                    <div class="col-sm-6 col-md-4 mb-4">
-                        @await Html.PartialAsync("~/Views/Shared/ProductCard.cshtml", p)
-                    </div>
-                }
-            }
-        </div>
-    }
-
-    <hr />
-
-    <div class="row">
-        <div class="col-md-4">
-            <h5>Доставляем качественные продукты</h5>
-            <p class="text-muted">Быстрое оформление, свежие продукты, удобные способы оплаты.</p>
-        </div>
-        <div class="col-md-4">
-            <h5>Гарантия свежести</h5>
-            <p class="text-muted">Возврат в случае несовпадения качества.</p>
-        </div>
-        <div class="col-md-4">
-            <h5>Контакты</h5>
-            <p class="text-muted">Телефон: +7 (900) 000-00-00</p>
-        </div>
     </div>
 
 </div>
-
-@section Scripts {
-    <script src="~/js/site-products.js"></script>
-}

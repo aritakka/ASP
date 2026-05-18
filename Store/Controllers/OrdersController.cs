@@ -15,10 +15,21 @@ namespace Store.Controllers
             _context = context;
         }
 
+        // 🔹 FIX: чтобы /Orders НЕ давал 404
+        public IActionResult Index()
+        {
+            return RedirectToAction("MyOrders");
+        }
+
         // GET: /Orders/MyOrders
         public async Task<IActionResult> MyOrders(bool justOrdered = false)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+                return RedirectToAction("Login", "Login");
+
+            int userId = int.Parse(userIdClaim);
 
             var customer = await _context.Customers
                 .Include(c => c.Orders)
@@ -31,18 +42,22 @@ namespace Store.Controllers
             if (customer == null)
             {
                 var user = await _context.Users.FindAsync(userId);
+
                 customer = new Customer
                 {
                     UserId = userId,
-                    FullName = user.UserName,
-                    Email = user.Email,
+                    FullName = user?.UserName ?? "User",
+                    Email = user?.Email ?? "",
                     Phone = ""
                 };
+
                 _context.Customers.Add(customer);
                 await _context.SaveChangesAsync();
             }
 
-            var orders = customer.Orders.OrderByDescending(o => o.OrderDate).ToList();
+            var orders = customer.Orders
+                .OrderByDescending(o => o.OrderDate)
+                .ToList();
 
             ViewBag.JustOrdered = justOrdered;
 
@@ -54,7 +69,12 @@ namespace Store.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateQuickOrder(int productId, int quantity = 1)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+                return RedirectToAction("Login", "Login");
+
+            int userId = int.Parse(userIdClaim);
 
             var customer = await _context.Customers
                 .FirstOrDefaultAsync(c => c.UserId == userId);
@@ -62,19 +82,23 @@ namespace Store.Controllers
             if (customer == null)
             {
                 var user = await _context.Users.FindAsync(userId);
+
                 customer = new Customer
                 {
                     UserId = userId,
-                    FullName = user.UserName,
-                    Email = user.Email,
+                    FullName = user?.UserName ?? "User",
+                    Email = user?.Email ?? "",
                     Phone = ""
                 };
+
                 _context.Customers.Add(customer);
                 await _context.SaveChangesAsync();
             }
 
             var product = await _context.Products.FindAsync(productId);
-            if (product == null) return NotFound();
+
+            if (product == null)
+                return NotFound();
 
             var order = new Order
             {
@@ -102,11 +126,11 @@ namespace Store.Controllers
                 PaymentMethod = "Cash",
                 Status = "Pending"
             };
+
             _context.Payments.Add(payment);
 
             await _context.SaveChangesAsync();
 
-            // Редирект с флагом justOrdered для уведомления
             return RedirectToAction("MyOrders", new { justOrdered = true });
         }
 
@@ -115,14 +139,21 @@ namespace Store.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Pay(int orderId)
         {
-            var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == orderId);
+            var payment = await _context.Payments
+                .FirstOrDefaultAsync(p => p.OrderId == orderId);
+
             if (payment != null)
             {
                 payment.Status = "Completed";
+
                 var order = await _context.Orders.FindAsync(orderId);
-                if (order != null) order.Status = "Completed";
+
+                if (order != null)
+                    order.Status = "Completed";
+
                 await _context.SaveChangesAsync();
             }
+
             return RedirectToAction("MyOrders");
         }
     }

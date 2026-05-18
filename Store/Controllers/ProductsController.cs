@@ -17,30 +17,17 @@ namespace Store.Controllers
             _env = env;
         }
 
-        // 🔹 Список товаров
+        // 🔹 Список услуг (доступен всем)
         public async Task<IActionResult> Index()
         {
-            if (User.IsInRole("Admin"))
-            {
-                var allProducts = await _db.Products.Include(p => p.Category).ToListAsync();
-                return View(allProducts);
-            }
-            else if (User.IsInRole("Supplier"))
-            {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                var supplierProducts = await _db.ProductSuppliers
-                    .Include(ps => ps.Product)
-                        .ThenInclude(p => p.Category)
-                    .Where(ps => ps.SupplierId == userId)
-                    .Select(ps => ps.Product)
-                    .ToListAsync();
-                return View(supplierProducts);
-            }
+            var products = await _db.Products
+                .Include(p => p.Category)
+                .ToListAsync();
 
-            return Unauthorized();
+            return View(products);
         }
 
-        // 🔹 Детали товара
+        // 🔹 Детали услуги
         public async Task<IActionResult> Details(int id)
         {
             var product = await _db.Products
@@ -49,19 +36,13 @@ namespace Store.Controllers
                     .ThenInclude(ps => ps.Supplier)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
-            if (product == null) return NotFound();
-
-            if (User.IsInRole("Supplier"))
-            {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                if (!product.ProductSuppliers.Any(ps => ps.SupplierId == userId))
-                    return Unauthorized();
-            }
+            if (product == null)
+                return NotFound();
 
             return View(product);
         }
 
-        // 🔹 Создание нового товара
+        // 🔹 Создание новой услуги
         [HttpGet]
         public IActionResult Create()
         {
@@ -69,6 +50,7 @@ namespace Store.Controllers
                 return Unauthorized();
 
             ViewBag.Categories = _db.Categories.ToList();
+
             return View();
         }
 
@@ -78,52 +60,65 @@ namespace Store.Controllers
             if (!User.IsInRole("Admin") && !User.IsInRole("Supplier"))
                 return Unauthorized();
 
-            if (!ModelState.IsValid) return View(product);
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Categories = _db.Categories.ToList();
+                return View(product);
+            }
 
             _db.Products.Add(product);
+
             await _db.SaveChangesAsync();
 
-            // Привязка товара к поставщику, если это Supplier
+            // 🔹 Привязка услуги к поставщику
             if (User.IsInRole("Supplier"))
             {
                 var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-                // Ищем существующего Supplier
-                var supplier = await _db.Suppliers.FirstOrDefaultAsync(s => s.Id == userId);
+                var supplier = await _db.Suppliers
+                    .FirstOrDefaultAsync(s => s.Id == userId);
+
                 if (supplier == null)
                 {
-                    // Создаем нового Supplier с Id = User.Id
                     supplier = new Supplier
                     {
                         Id = userId,
                         Name = User.Identity?.Name ?? "Поставщик"
                     };
+
                     _db.Suppliers.Add(supplier);
+
                     await _db.SaveChangesAsync();
                 }
 
-                // Добавляем связь ProductSupplier
                 _db.ProductSuppliers.Add(new ProductSupplier
                 {
                     ProductId = product.Id,
                     SupplierId = supplier.Id
                 });
+
                 await _db.SaveChangesAsync();
             }
 
+            // 🔹 Сохранение изображения
             if (image != null)
             {
                 var path = Path.Combine(_env.WebRootPath, "images/products");
-                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+
                 var filePath = Path.Combine(path, $"{product.Id}.jpg");
+
                 using var stream = new FileStream(filePath, FileMode.Create);
+
                 await image.CopyToAsync(stream);
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        // 🔹 Редактирование товара
+        // 🔹 Редактирование услуги
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -131,11 +126,13 @@ namespace Store.Controllers
                 .Include(p => p.ProductSuppliers)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
-            if (product == null) return NotFound();
+            if (product == null)
+                return NotFound();
 
             if (User.IsInRole("Supplier"))
             {
                 var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
                 if (!product.ProductSuppliers.Any(ps => ps.SupplierId == userId))
                     return Unauthorized();
             }
@@ -145,6 +142,7 @@ namespace Store.Controllers
             }
 
             ViewBag.Categories = _db.Categories.ToList();
+
             return View(product);
         }
 
@@ -154,34 +152,47 @@ namespace Store.Controllers
             if (User.IsInRole("Supplier"))
             {
                 var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
                 var ownsProduct = await _db.ProductSuppliers
                     .AnyAsync(ps => ps.ProductId == product.Id && ps.SupplierId == userId);
 
-                if (!ownsProduct) return Unauthorized();
+                if (!ownsProduct)
+                    return Unauthorized();
             }
             else if (!User.IsInRole("Admin"))
             {
                 return Unauthorized();
             }
 
-            if (!ModelState.IsValid) return View(product);
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Categories = _db.Categories.ToList();
+                return View(product);
+            }
 
             _db.Products.Update(product);
+
             await _db.SaveChangesAsync();
 
+            // 🔹 Обновление изображения
             if (image != null)
             {
                 var path = Path.Combine(_env.WebRootPath, "images/products");
-                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+
                 var filePath = Path.Combine(path, $"{product.Id}.jpg");
+
                 using var stream = new FileStream(filePath, FileMode.Create);
+
                 await image.CopyToAsync(stream);
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        // 🔹 Удаление товара
+        // 🔹 Удаление услуги
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
@@ -189,11 +200,13 @@ namespace Store.Controllers
                 .Include(p => p.ProductSuppliers)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
-            if (product == null) return NotFound();
+            if (product == null)
+                return NotFound();
 
             if (User.IsInRole("Supplier"))
             {
                 var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
                 if (!product.ProductSuppliers.Any(ps => ps.SupplierId == userId))
                     return Unauthorized();
             }
@@ -209,14 +222,19 @@ namespace Store.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var product = await _db.Products.FindAsync(id);
-            if (product == null) return NotFound();
+
+            if (product == null)
+                return NotFound();
 
             if (User.IsInRole("Supplier"))
             {
                 var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
                 var ownsProduct = await _db.ProductSuppliers
                     .AnyAsync(ps => ps.ProductId == id && ps.SupplierId == userId);
-                if (!ownsProduct) return Unauthorized();
+
+                if (!ownsProduct)
+                    return Unauthorized();
             }
             else if (!User.IsInRole("Admin"))
             {
@@ -224,7 +242,9 @@ namespace Store.Controllers
             }
 
             _db.Products.Remove(product);
+
             await _db.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
     }
