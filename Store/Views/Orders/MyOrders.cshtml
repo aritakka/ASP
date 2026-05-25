@@ -1,37 +1,37 @@
 ﻿@model IEnumerable<Store.Models.Order>
 
 @{
-    ViewData["Title"] = "Мои заказы";
+    ViewData["Title"] = "Мои записи";
     var justOrdered = ViewBag.JustOrdered ?? false;
 }
 
 <div class="container mt-4">
 
-    <h2>Мои заказы</h2>
+    <h2>Мои записи</h2>
 
     @* ✅ Уведомление после 1 клика *@
     @if (justOrdered)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            Заказ успешно создан!
+            Запись успешно создана!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
     @if (!Model.Any())
     {
-        <p>У вас пока нет заказов.</p>
+        <p>У вас пока нет записей.</p>
     }
     else
     {
         <table class="table table-striped mt-3">
             <thead>
                 <tr>
-                    <th>Номер заказа</th>
+                    <th>Номер записи</th>
                     <th>Дата</th>
                     <th>Сумма</th>
                     <th>Статус</th>
-                    <th>Товары</th>
+                    <th>Услуги</th>
                     <th>Оплата</th>
                 </tr>
             </thead>

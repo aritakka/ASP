@@ -1,11 +1,11 @@
 ﻿@model Store.Models.Product
 @{
-    ViewData["Title"] = "Редактировать товар";
+    ViewData["Title"] = "Редактировать услугу";
     var categories = ViewBag.Categories as List<Store.Models.Category>;
 }
 
 <div class="container mt-4">
-    <h2>Редактировать товар</h2>
+    <h2>Редактировать услугу</h2>
     <form asp-action="Edit" method="post" enctype="multipart/form-data">
         <input type="hidden" asp-for="Id" />
         <div class="mb-3">

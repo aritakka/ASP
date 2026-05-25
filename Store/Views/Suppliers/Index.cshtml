@@ -1,19 +1,19 @@
 ﻿@model IEnumerable<Store.Models.Product>
 
 @{
-    ViewData["Title"] = "Мои товары";
+    ViewData["Title"] = "Мои услуги";
 }
 
 <h1>@ViewData["Title"]</h1>
 
 <p>
-    <a asp-controller="Products" asp-action="Create" class="btn btn-success">Добавить новый товар</a>
-    <a asp-controller="Suppliers" asp-action="Orders" class="btn btn-primary">Посмотреть заказы</a>
+    <a asp-controller="Products" asp-action="Create" class="btn btn-success">Добавить новую услугу</a>
+    <a asp-controller="Suppliers" asp-action="Orders" class="btn btn-primary">Записи пациентов</a>
 </p>
 
 @if (!Model.Any())
 {
-    <p>У вас пока нет товаров.</p>
+    <p>У вас пока нет услуг.</p>
 }
 else
 {

@@ -1,25 +1,25 @@
 ﻿@model IEnumerable<Store.Models.Order>
 
 @{
-    ViewData["Title"] = "Заказы на мои товары";
+    ViewData["Title"] = "Записи пациентов";
 }
 
-<h2>Заказы на мои товары</h2>
+<h2>Записи пациентов</h2>
 
 @if (!Model.Any())
 {
-    <p>Пока нет заказов на ваши товары.</p>
+    <p>Пока нет записей пациентов.</p>
 }
 else
 {
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Номер заказа</th>
+                <th>Номер записи</th>
                 <th>Дата</th>
                 <th>Статус</th>
                 <th>Клиент</th>
-                <th>Товары</th>
+                <th>Услуги</th>
             </tr>
         </thead>
         <tbody>

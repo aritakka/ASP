@@ -1,7 +1,7 @@
 ﻿@model Store.Models.Product
 
 @{
-    ViewData["Title"] = Model?.Name ?? "Детали товара";
+    ViewData["Title"] = Model?.Name ?? "Информация об услуге";
 }
 
 <div class="container mt-4">
@@ -45,7 +45,7 @@
 
                 <!-- Количество -->
                 <div class="mb-2">
-                    <strong>Количество:</strong>
+                    <strong>Свободно записей:</strong>
                     <span id="qtyText">@Model?.Quantity</span>
 
                     @if (User.IsInRole("Admin"))
@@ -74,7 +74,7 @@
                         <!-- ✅ Кнопка удаления -->
                         <div class="mt-2">
                             <form asp-action="Delete" asp-route-id="@Model.Id" method="post"
-                                  onsubmit="return confirm('Вы точно хотите удалить этот товар?');">
+                                  onsubmit="return confirm('Вы точно хотите удалить эту услугу?');">
                                 <button type="submit" class="btn btn-danger">
                                     Удалить
                                 </button>
@@ -92,16 +92,16 @@
                         <form asp-controller="Orders" asp-action="CreateQuickOrder" method="post" class="d-inline ms-2">
                             <input type="hidden" name="productId" value="@Model.Id" />
                             <button type="submit" class="btn btn-primary">
-                                Купить в 1 клик
+                                Записаться на прием
                             </button>
                         </form>
                     }
 
-                    @* ✅ Кнопка "Добавить товар" для Admin *@
+                    @* ✅ Кнопка "Добавить услугу" для Admin *@
                     @if (User.IsInRole("Admin"))
                     {
                         <a asp-controller="Products" asp-action="Create" class="btn btn-success ms-2">
-                            Добавить товар
+                            Добавить услугу
                         </a>
                     }
                 </div>

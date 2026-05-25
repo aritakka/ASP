@@ -1,11 +1,11 @@
 ﻿@model Store.Models.Product
 @{
-    ViewData["Title"] = "Удалить товар";
+    ViewData["Title"] = "Удалить услугу";
 }
 
 <div class="container mt-4">
-    <h2>Удалить товар</h2>
-    <p>Вы уверены, что хотите удалить товар <strong>@Model.Name</strong>?</p>
+    <h2>Удалить услугу</h2>
+    <p>Вы уверены, что хотите удалить услугу <strong>@Model.Name</strong>?</p>
 
     <form asp-action="Delete" method="post">
         <input type="hidden" asp-for="Id" />
