@@ -42,6 +42,31 @@ namespace Store.Controllers
             return View(product);
         }
 
+        // 🔹 Загрузка изображения
+        [HttpPost]
+        public async Task<IActionResult> UploadImage(int id, IFormFile file)
+        {
+            if (!User.IsInRole("Admin"))
+                return Unauthorized();
+
+            if (file == null || file.Length == 0)
+                return BadRequest("Файл не выбран");
+
+            var path = Path.Combine(_env.WebRootPath, "images/products");
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            var filePath = Path.Combine(path, $"{id}.jpg");
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            return RedirectToAction("Details", new { id });
+        }
+
         // 🔹 Создание новой услуги
         [HttpGet]
         public IActionResult Create()

@@ -9,18 +9,32 @@
 
         <!-- 📷 Картинка -->
         <div class="col-md-5">
+
             <img src="~/images/products/@(Model?.Id).jpg"
                  class="img-fluid rounded"
                  onerror="this.src='/images/placeholder.png'">
 
                 @if (User.IsInRole("Admin"))
                 {
-                    <form asp-action="UploadImage" asp-controller="Products" method="post" enctype="multipart/form-data" class="mt-3">
+                    <form asp-action="UploadImage"
+                          asp-controller="Products"
+                          method="post"
+                          enctype="multipart/form-data"
+                          class="mt-3">
+
                         <input type="hidden" name="id" value="@Model.Id" />
-                        <input type="file" name="file" class="form-control mb-2" />
-                        <button type="submit" class="btn btn-dark">Загрузить фото</button>
+
+                        <input type="file"
+                               name="file"
+                               class="form-control mb-2" />
+
+                        <button type="submit"
+                                class="btn btn-dark">
+                            Загрузить фото
+                        </button>
                     </form>
                 }
+
             </div>
 
             <!-- 📄 Информация -->
@@ -39,7 +53,10 @@
 
                     @if (User.IsInRole("Admin"))
                     {
-                        <input id="priceInput" type="number" value="@Model?.Price" class="form-control d-none" />
+                        <input id="priceInput"
+                               type="number"
+                               value="@Model?.Price"
+                               class="form-control d-none" />
                     }
                 </div>
 
@@ -50,60 +67,98 @@
 
                     @if (User.IsInRole("Admin"))
                     {
-                        <input id="qtyInput" type="number" value="@Model?.Quantity" class="form-control d-none" />
+                        <input id="qtyInput"
+                               type="number"
+                               value="@Model?.Quantity"
+                               class="form-control d-none" />
                     }
                 </div>
 
                 <!-- Описание -->
                 <div class="mb-2">
                     <strong>Описание:</strong>
-                    <p id="descText">@Model?.Description</p>
+
+                    <p id="descText">
+                        @Model?.Description
+                    </p>
 
                     @if (User.IsInRole("Admin"))
                     {
-                        <textarea id="descInput" class="form-control d-none">@Model?.Description</textarea>
+                        <textarea id="descInput"
+                                  class="form-control d-none">@Model?.Description</textarea>
                     }
                 </div>
 
                 @if (User.IsInRole("Admin"))
                 {
                     <div class="mt-3">
-                        <button id="editBtn" class="btn btn-warning">Редактировать</button>
-                        <button id="saveBtn" class="btn btn-success d-none">Сохранить</button>
 
-                        <!-- ✅ Кнопка удаления -->
+                        <button id="editBtn"
+                                class="btn btn-warning">
+                            Редактировать
+                        </button>
+
+                        <button id="saveBtn"
+                                class="btn btn-success d-none">
+                            Сохранить
+                        </button>
+
+                        <!-- ✅ Удаление -->
                         <div class="mt-2">
-                            <form asp-action="Delete" asp-route-id="@Model.Id" method="post"
+
+                            <form asp-action="Delete"
+                                  asp-route-id="@Model.Id"
+                                  method="post"
                                   onsubmit="return confirm('Вы точно хотите удалить эту услугу?');">
-                                <button type="submit" class="btn btn-danger">
+
+                                <button type="submit"
+                                        class="btn btn-danger">
                                     Удалить
                                 </button>
+
                             </form>
+
                         </div>
+
                     </div>
                 }
 
                 <div class="mt-3">
-                    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Назад</a>
 
-                    @* 🛒 КНОПКА ПОКУПКИ (ДОБАВИЛ) *@
+                    <a asp-controller="Home"
+                           asp-action="Index"
+                           class="btn btn-secondary">
+                        Назад
+                    </a>
+
                     @if (!User.IsInRole("Admin"))
                     {
-                        <form asp-controller="Orders" asp-action="CreateQuickOrder" method="post" class="d-inline ms-2">
-                            <input type="hidden" name="productId" value="@Model.Id" />
-                            <button type="submit" class="btn btn-primary">
+                        <form asp-controller="Orders"
+                              asp-action="CreateQuickOrder"
+                              method="post"
+                              class="d-inline ms-2">
+
+                            <input type="hidden"
+                                   name="productId"
+                                   value="@Model.Id" />
+
+                            <button type="submit"
+                                    class="btn btn-primary">
                                 Записаться на прием
                             </button>
+
                         </form>
                     }
 
-                    @* ✅ Кнопка "Добавить услугу" для Admin *@
                     @if (User.IsInRole("Admin"))
                     {
-                        <a asp-controller="Products" asp-action="Create" class="btn btn-success ms-2">
+                        <a asp-controller="Products"
+                               asp-action="Create"
+                               class="btn btn-success ms-2">
                             Добавить услугу
                         </a>
                     }
+
                 </div>
 
             </div>
@@ -111,12 +166,16 @@
     </div>
 
     @section Scripts {
+
         <script>
+
             const editBtn = document.getElementById("editBtn");
             const saveBtn = document.getElementById("saveBtn");
 
             if (editBtn) {
+
                 editBtn.onclick = () => {
+
                     document.getElementById("priceText").classList.add("d-none");
                     document.getElementById("qtyText").classList.add("d-none");
                     document.getElementById("descText").classList.add("d-none");
@@ -131,8 +190,11 @@
             }
 
             if (saveBtn) {
+
                 saveBtn.onclick = async () => {
+
                     const data = new FormData();
+
                     data.append("Id", "@Model.Id");
                     data.append("Price", document.getElementById("priceInput").value);
                     data.append("Quantity", document.getElementById("qtyInput").value);
@@ -144,12 +206,15 @@
                     });
 
                     const result = await response.json();
+
                     if (result.success) {
                         location.reload();
-                    } else {
+                    }
+                    else {
                         alert("Ошибка сохранения");
                     }
                 };
             }
+
         </script>
     }
